@@ -10,4 +10,4 @@
 ```bash
 cp ./app/.env.example ./app/.env # чтобы не передавать лишнюю информацию
 docker compose up --build
-kek
+
