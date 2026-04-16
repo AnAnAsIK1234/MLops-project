@@ -4,8 +4,10 @@ services:
     env_file:
       - ./app/.env
     volumes:
-      - ./app/src:/app/src
+      - ./app:/app
     working_dir: /app
+    environment:
+      PYTHONPATH: /app
     command: python /app/src/app.py
     expose:
       - "8000"

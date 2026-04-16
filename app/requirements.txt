@@ -1,5 +1,6 @@
-Flask==3.0.3
 SQLAlchemy==2.0.36
 psycopg2-binary==2.9.10
 python-dotenv==1.0.1
 pytest==8.3.3
+FastAPI==0.135.3
+uvicorn[standard]==0.34.1
