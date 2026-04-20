@@ -4,8 +4,10 @@ services:
     env_file:
       - ./app/.env
     volumes:
-      - ./app/src:/app/src
+      - ./app:/app
     working_dir: /app
+    environment:
+      PYTHONPATH: /app
     command: python /app/src/app.py
     expose:
       - "8000"
@@ -34,8 +36,14 @@ services:
     image: postgres:16-alpine
     env_file:
       - ./app/.env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-app_db}
+      POSTGRES_USER: ${POSTGRES_USER:-app_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-app_password}
     volumes:
       - postgres_volume:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
 
 volumes:
   rabbitmq_volume:
