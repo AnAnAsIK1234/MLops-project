@@ -1,36 +1,54 @@
 services:
-  app:
+  api:
     build: ./app
     env_file:
       - ./app/.env
+    working_dir: /app
     volumes:
       - ./app:/app
-    working_dir: /app
-    environment:
-      PYTHONPATH: /app
-    command: python /app/src/app.py
-    expose:
-      - "8000"
-    depends_on:
-      - database
-      - rabbitmq
-
-  web-proxy:
-    build: ./web-proxy
-    depends_on:
-      - app
+    command: uvicorn src.app:app --host 0.0.0.0 --port 8000 --reload
     ports:
-      - "80:80"
-      - "443:443"
+      - "8000:8000"
+    depends_on:
+      - rabbitmq
+      - database
+
+  worker-1:
+    build: ./app
+    env_file:
+      - ./app/.env
+    working_dir: /app
+    volumes:
+      - ./app:/app
+    command: python -m src.worker
+    environment:
+      WORKER_ID: worker-1
+    depends_on:
+      - rabbitmq
+      - database
+
+  worker-2:
+    build: ./app
+    env_file:
+      - ./app/.env
+    working_dir: /app
+    volumes:
+      - ./app:/app
+    command: python -m src.worker
+    environment:
+      WORKER_ID: worker-2
+    depends_on:
+      - rabbitmq
+      - database
 
   rabbitmq:
     image: rabbitmq:3-management
+    hostname: rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
     volumes:
-      - rabbitmq_volume:/var/lib/rabbitmq
-    restart: on-failure
+      - rabbitmq_data:/var/lib/rabbitmq
 
   database:
     image: postgres:16-alpine
@@ -40,11 +58,11 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-app_db}
       POSTGRES_USER: ${POSTGRES_USER:-app_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-app_password}
-    volumes:
-      - postgres_volume:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
 volumes:
-  rabbitmq_volume:
-  postgres_volume:
+  rabbitmq_data:
+  postgres_data:

@@ -40,11 +40,8 @@ def session_scope() -> Generator:
         raise
     finally:
         session.close()
-<<<<<<< HEAD
 
 
 def get_session():
     with Session(ENGINE) as session:
         yield session
-=======
->>>>>>> origin/hw3

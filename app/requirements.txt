@@ -3,9 +3,5 @@ psycopg2-binary==2.9.10
 python-dotenv==1.0.1
 pytest==8.3.3
 FastAPI==0.135.3
-<<<<<<< HEAD
 uvicorn[standard]==0.34.1
 bcrypt
-=======
-uvicorn[standard]==0.34.1
->>>>>>> origin/hw3

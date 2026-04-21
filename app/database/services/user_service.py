@@ -23,45 +23,28 @@ from database.models import (
 from .exceptions import NotFoundError, InsufficientBalanceError
 
 class UserService:
-<<<<<<< HEAD
     def __init__(self, session):
         self.session = session
 
     def create_user(self, login: str, password_hash: str, role: str = "user") -> UserORM:
-=======
-    def __init__(self, session: Session) -> None:
-        self.session = session
-
-    def create_user(self, login: str, password_hash: str, role: str = UserRole.USER.value) -> UserORM:
->>>>>>> origin/hw3
         existing = self.session.scalar(select(UserORM).where(UserORM.login == login))
         if existing is not None:
             raise ValueError("User already exists")
 
         user = UserORM(login=login, password_hash=password_hash, role=role)
-<<<<<<< HEAD
         self.session.add(user)
         self.session.flush()
 
         from database.models import BalanceORM
         user.balance = BalanceORM(user_id=user.id, credits=0)
         self.session.flush()
-=======
-        user.balance = BalanceORM(credits=0)
-        self.session.add(user)
-        self.session.flush()
->>>>>>> origin/hw3
         return user
 
     def get_user(self, user_id: str) -> UserORM:
         user = self.session.get(UserORM, user_id)
         if user is None:
             raise NotFoundError("User not found")
-<<<<<<< HEAD
         return user
 
     def get_by_login(self, login: str) -> UserORM | None:
         return self.session.scalar(select(UserORM).where(UserORM.login == login))
-=======
-        return user
->>>>>>> origin/hw3

@@ -32,7 +32,6 @@ class PredictionService:
         self.model_service = ModelService(session)
         self.user_service = UserService(session)
 
-<<<<<<< HEAD
     def get_task(self, task_id: str) -> PredictionTaskORM:
         task = self.session.get(PredictionTaskORM, task_id)
         if task is None:
@@ -48,8 +47,6 @@ class PredictionService:
         )
         return list(self.session.scalars(stmt))
     
-=======
->>>>>>> origin/hw3
     def create_task(self, user_id: str, model_id: str, input_data: str) -> PredictionTaskORM:
         user = self.user_service.get_user(user_id)
         if not user.is_active:

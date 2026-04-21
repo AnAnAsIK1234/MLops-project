@@ -39,13 +39,10 @@ class NotFoundError(Exception):
 class InsufficientBalanceError(Exception):
     pass
 
-<<<<<<< HEAD
 @app.on_event("startup")
 def on_startup():
     Base.metadata.create_all(bind=ENGINE)
 
-=======
->>>>>>> origin/hw3
 @app.exception_handler(NotFoundError)
 async def handle_not_found(request: Request, exc: NotFoundError):
     return JSONResponse(
