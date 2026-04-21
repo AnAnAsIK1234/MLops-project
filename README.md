@@ -1,131 +1,95 @@
-## 1. Запуск
+````md
+# Что доступно:
+* API: `http://localhost:8000`
+* Swagger: `http://localhost:8000/docs`
+* RabbitMQ UI: `http://localhost:15672`
 
-1. Copy `app/.env.example` to `app/.env`
-2. `docker compose up --build`
-3. `http://localhost/health`
+## Что можно проверить
 
-Проверить, что сервис жив:
+### 1. Проверка, что API запущен
 
 ```bash
-curl http://localhost/health
+curl http://localhost:8000/health
 ```
 
-```bash
-curl -X POST http://localhost/init-demo
+Ожидаемый ответ:
+
+```json
+{"status":"ok"}
 ```
 
-Это создаст базовые данные для проверки.
+### 2. Отправка ML-задачи в очередь
 
----
-
-## 2. Протестировать работу с пользователями
-
-### Создание пользователя
+Команда соответствует требованию:
+**publisher принимает запрос, формирует задачу, публикует сообщение в RabbitMQ и возвращает `task_id`**
 
 ```bash
-curl -X POST http://localhost/users \
+curl -X POST http://localhost:8000/predict \
   -H "Content-Type: application/json" \
-  -d "{\"login\":\"ivan\",\"email\":\"ivan@example.com\",\"role\":\"user\"}"
+  -d '{
+    "features": {
+      "x1": 1.2,
+      "x2": 5.7
+    },
+    "model": "demo_model"
+  }'
 ```
 
-**Ожидаем:**
-- пользователь создался;
-- вернулся `id`;
-- в БД появилась запись в `users`.
+Пример ответа:
 
-### Загрузка пользователя из БД
-
-```bash
-curl http://localhost/users/<user_id>
+```json
+{
+  "task_id": "uuid",
+  "status": "queued"
+}
 ```
 
-**Ожидаем:**
-- приходит тот же пользователь;
-- у него есть связь с балансом.
+### 3. Проверка результата обработки задачи
 
----
-
-## 3. Протестировать баланс и транзакции
-
-### Пополнение баланса
+Подставить полученный `task_id`:
 
 ```bash
-curl -X POST http://localhost/users/<user_id>/top-up \
-  -H "Content-Type: application/json" \
-  -d "{\"amount\":100}"
+curl http://localhost:8000/tasks/<task_id>
 ```
 
-**Проверка:**
-- баланс увеличился;
-- в `balance_transactions` появилась запись с типом пополнения.
+Пример ответа после обработки:
 
-### Списание кредитов
-
-```bash
-curl -X POST http://localhost/users/<user_id>/debit \
-  -H "Content-Type: application/json" \
-  -d "{\"amount\":30}"
+```json
+{
+  "task_id": "uuid",
+  "model": "demo_model",
+  "status": "success",
+  "prediction": 3.9,
+  "worker_id": "worker-1",
+  "created_at": "...",
+  "updated_at": "..."
+}
 ```
 
-**Проверка:**
-- баланс уменьшился;
-- в истории транзакций появилась запись на списание.
+### 4. Проверка, что работают несколько consumers
 
-### Проверка нехватки баланса
+Отправить несколько задач подряд:
 
 ```bash
-curl -X POST http://localhost/users/<user_id>/debit \
-  -H "Content-Type: application/json" \
-  -d "{\"amount\":999999}"
+curl -X POST http://localhost:8000/predict -H "Content-Type: application/json" -d '{"features":{"x1":1,"x2":2},"model":"demo_model"}'
+curl -X POST http://localhost:8000/predict -H "Content-Type: application/json" -d '{"features":{"x1":2,"x2":3},"model":"demo_model"}'
+curl -X POST http://localhost:8000/predict -H "Content-Type: application/json" -d '{"features":{"x1":3,"x2":4},"model":"demo_model"}'
+curl -X POST http://localhost:8000/predict -H "Content-Type: application/json" -d '{"features":{"x1":4,"x2":5},"model":"demo_model"}'
 ```
 
-**Ожидаем:**
-- ошибка;
-- баланс не уходит в минус;
-- новая транзакция не создаётся.
-
----
-
-## 5. Протестировать историю запросов пользователя
-
-### Посмотреть список моделей
+Посмотреть логи воркеров:
 
 ```bash
-curl http://localhost/models
+docker compose logs -f worker-1 worker-2
 ```
 
-Взять `model_id`.
+По логам видно, что задачи распределяются между `worker-1` и `worker-2`.
 
-### Создать prediction task
+### 5. Проверка тестов
 
 ```bash
-curl -X POST http://localhost/predictions \
-  -H "Content-Type: application/json" \
-  -d "{\"user_id\":\"<user_id>\",\"model_id\":\"<model_id>\",\"input_data\":\"test prompt\"}"
+docker compose exec api pytest -q
 ```
 
-Взять `task_id`.
-
-### Выполнить задачу
-
-```bash
-curl -X POST http://localhost/predictions/<task_id>/run
 ```
-
-**Проверка:**
-- задача получила статус;
-- списались кредиты;
-- появился результат;
-- история по задаче сохранилась.
-
-### Получить историю по задаче
-
-```bash
-curl http://localhost/tasks/<task_id>/history
-```
-
-### Получить историю пользователя
-
-```bash
-curl http://localhost/users/<user_id>/history
 ```
