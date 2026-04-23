@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,14 +13,14 @@
                 <a href="/">ML Cabinet</a>
             </div>
             <nav class="nav">
-                <a href="/">Главная</a>
-                <a href="/dashboard">Кабинет</a>
-                <a href="/balance-page">Баланс</a>
-                <a href="/predict-page">Предсказания</a>
-                <a href="/history-page">История</a>
-                <a href="/login" id="loginLink">Войти</a>
-                <a href="/register" id="registerLink">Регистрация</a>
-                <a href="#" id="logoutLink" style="display:none;">Выйти</a>
+                <a href="/">Home</a>
+                <a href="/dashboard">Dashboard</a>
+                <a href="/balance-page">Balance</a>
+                <a href="/predict-page">Predict</a>
+                <a href="/history-page">History</a>
+                <a href="/login" id="loginLink">Login</a>
+                <a href="/register" id="registerLink">Register</a>
+                <a href="#" id="logoutLink" style="display:none;">Logout</a>
             </nav>
         </div>
     </header>
@@ -73,7 +73,7 @@
             if (!response.ok) {
                 const message = typeof data === "object" && data?.detail
                     ? data.detail
-                    : "Ошибка запроса";
+                    : "Request error";
                 throw new Error(message);
             }
 

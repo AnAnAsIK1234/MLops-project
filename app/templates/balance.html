@@ -2,18 +2,18 @@
 
 {% block content %}
 <section class="panel">
-    <h1>Баланс</h1>
+    <h1>Balance</h1>
 
     <div id="balanceMessage" class="message"></div>
 
     <div class="card-grid">
         <div class="card">
-            <h3>Текущий баланс</h3>
-            <p class="balance-value"><span id="balanceValue">0</span> кредитов</p>
+            <h3>Current balance</h3>
+            <p class="balance-value"><span id="balanceValue">0</span> credits</p>
         </div>
 
         <div class="card">
-            <h3>Пополнение</h3>
+            <h3>Top up</h3>
 
             <div class="actions">
                 <button class="btn" onclick="topUpQuick(10)">+10</button>
@@ -23,27 +23,27 @@
 
             <form id="topUpForm" class="form inline-form">
                 <label>
-                    Сумма
+                    Amount
                     <input type="number" id="topUpAmount" min="1" value="10" required>
                 </label>
-                <button type="submit" class="btn">Пополнить</button>
+                <button type="submit" class="btn">Top up balance</button>
             </form>
         </div>
     </div>
 
     <div class="table-wrap">
-        <h2>Транзакции</h2>
+        <h2>Transactions</h2>
         <table>
             <thead>
                 <tr>
-                    <th>Дата</th>
-                    <th>Тип</th>
-                    <th>Сумма</th>
-                    <th>Описание</th>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Description</th>
                 </tr>
             </thead>
             <tbody id="transactionsTable">
-                <tr><td colspan="4">Загрузка...</td></tr>
+                <tr><td colspan="4">Loading...</td></tr>
             </tbody>
         </table>
     </div>
@@ -60,7 +60,7 @@
         const tbody = document.getElementById("transactionsTable");
 
         if (!transactions.length) {
-            tbody.innerHTML = '<tr><td colspan="4">Транзакций пока нет</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4">No transactions yet</td></tr>';
             return;
         }
 
@@ -82,7 +82,7 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ amount })
             });
-            showMessage("balanceMessage", `Баланс пополнен на ${amount}`, "success");
+            showMessage("balanceMessage", `Balance topped up by ${amount}`, "success");
             await loadBalancePage();
         } catch (error) {
             showMessage("balanceMessage", error.message, "error");
@@ -101,7 +101,7 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ amount })
             });
-            showMessage("balanceMessage", `Баланс пополнен на ${amount}`, "success");
+            showMessage("balanceMessage", `Balance topped up by ${amount}`, "success");
             await loadBalancePage();
         } catch (error) {
             showMessage("balanceMessage", error.message, "error");

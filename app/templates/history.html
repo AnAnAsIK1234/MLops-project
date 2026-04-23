@@ -2,7 +2,7 @@
 
 {% block content %}
 <section class="panel">
-    <h1>История операций</h1>
+    <h1>Operation history</h1>
 
     <div id="historyMessage" class="message"></div>
 
@@ -10,23 +10,23 @@
         <table>
             <thead>
                 <tr>
-                    <th>Дата</th>
-                    <th>Тип операции</th>
-                    <th>Статус</th>
-                    <th>Сумма</th>
-                    <th>Описание</th>
+                    <th>Date</th>
+                    <th>Operation type</th>
+                    <th>Status</th>
+                    <th>Amount</th>
+                    <th>Description</th>
                     <th>Task ID</th>
-                    <th>Модель</th>
+                    <th>Model</th>
                 </tr>
             </thead>
             <tbody id="historyTable">
-                <tr><td colspan="7">Загрузка...</td></tr>
+                <tr><td colspan="7">Loading...</td></tr>
             </tbody>
         </table>
     </div>
 
     <div class="panel-inner">
-        <h2>История ML-задач</h2>
+        <h2>Prediction history</h2>
         <pre id="predictionHistoryBox" class="code-box"></pre>
     </div>
 </section>
@@ -40,7 +40,7 @@
 
         const tbody = document.getElementById("historyTable");
         if (!history.length) {
-            tbody.innerHTML = '<tr><td colspan="7">История пока пуста</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7">History is empty</td></tr>';
         } else {
             tbody.innerHTML = history.map(item => `
                 <tr>

@@ -2,26 +2,26 @@
 
 {% block content %}
 <section class="panel narrow">
-    <h1>Регистрация</h1>
+    <h1>Register</h1>
 
     <div id="registerMessage" class="message"></div>
 
     <form id="registerForm" class="form">
         <label>
-            Логин
+            Login
             <input type="text" id="login" name="login" required minlength="3">
         </label>
 
         <label>
-            Пароль
+            Password
             <input type="password" id="password" name="password" required minlength="6">
         </label>
 
-        <button type="submit" class="btn">Зарегистрироваться</button>
+        <button type="submit" class="btn">Create account</button>
     </form>
 
     <p class="muted">
-        Уже есть аккаунт? <a href="/login">Войти</a>
+        Already have an account? <a href="/login">Login</a>
     </p>
 </section>
 {% endblock %}
@@ -44,7 +44,7 @@
                 body: JSON.stringify({ login, password })
             });
 
-            showMessage("registerMessage", "Регистрация успешна. Теперь войди в систему.", "success");
+            showMessage("registerMessage", "Registration completed. Please log in.", "success");
             setTimeout(() => {
                 window.location.href = "/login";
             }, 1000);

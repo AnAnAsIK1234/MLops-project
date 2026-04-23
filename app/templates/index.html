@@ -2,35 +2,34 @@
 
 {% block content %}
 <section class="hero">
-    <h1>Web-интерфейс личного кабинета ML-сервиса</h1>
+    <h1>ML Cabinet Service</h1>
     <p>
-        Это клиентская часть сервиса, через которую пользователь может:
-        зарегистрироваться, авторизоваться, пополнять баланс, отправлять ML-запросы,
-        получать результаты и просматривать историю операций.
+        This web interface allows a user to register, log in, top up balance,
+        send ML requests, receive results and view operation history.
     </p>
 
     <div class="card-grid">
         <div class="card">
-            <h3>1. Регистрация и вход</h3>
-            <p>Создай аккаунт и получи доступ к личному кабинету.</p>
+            <h3>1. Registration and login</h3>
+            <p>Create an account and access your dashboard.</p>
         </div>
         <div class="card">
-            <h3>2. Баланс</h3>
-            <p>Пополняй баланс кредитов для выполнения ML-запросов.</p>
+            <h3>2. Balance</h3>
+            <p>Top up credits required for ML requests.</p>
         </div>
         <div class="card">
-            <h3>3. ML-запросы</h3>
-            <p>Отправляй данные через форму или CSV-файл и получай предсказания.</p>
+            <h3>3. ML requests</h3>
+            <p>Submit data by form or CSV and get predictions.</p>
         </div>
         <div class="card">
-            <h3>4. История</h3>
-            <p>Смотри историю пополнений, списаний и выполненных запросов.</p>
+            <h3>4. History</h3>
+            <p>View top-ups, charges and prediction operations.</p>
         </div>
     </div>
 
     <div class="actions">
-        <a class="btn" href="/register">Регистрация</a>
-        <a class="btn btn-secondary" href="/login">Войти</a>
+        <a class="btn" href="/register">Register</a>
+        <a class="btn btn-secondary" href="/login">Login</a>
     </div>
 </section>
 {% endblock %}

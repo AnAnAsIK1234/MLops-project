@@ -2,17 +2,17 @@
 
 {% block content %}
 <section class="panel">
-    <h1>ML-запрос</h1>
+    <h1>ML Request</h1>
 
     <div id="predictMessage" class="message"></div>
 
     <div class="card-grid">
         <div class="card">
-            <h3>Ручной ввод</h3>
+            <h3>Manual input</h3>
 
             <form id="predictForm" class="form">
                 <label>
-                    Модель
+                    Model
                     <select id="formModelId" required></select>
                 </label>
 
@@ -26,37 +26,37 @@
                     <input type="number" step="any" id="x2" required>
                 </label>
 
-                <button type="submit" class="btn">Отправить форму</button>
+                <button type="submit" class="btn">Submit form</button>
             </form>
         </div>
 
         <div class="card">
-            <h3>Загрузка CSV</h3>
+            <h3>CSV upload</h3>
 
             <form id="filePredictForm" class="form">
                 <label>
-                    Модель
+                    Model
                     <select id="fileModelId" required></select>
                 </label>
 
                 <label>
-                    CSV-файл
+                    CSV file
                     <input type="file" id="csvFile" accept=".csv" required>
                 </label>
 
-                <button type="submit" class="btn">Отправить файл</button>
+                <button type="submit" class="btn">Submit file</button>
             </form>
         </div>
     </div>
 
     <div class="panel-inner">
-        <h2>Последний результат</h2>
-        <div id="taskInfo" class="muted">Задача еще не отправлялась.</div>
+        <h2>Latest result</h2>
+        <div id="taskInfo" class="muted">No task submitted yet.</div>
         <pre id="resultBox" class="code-box"></pre>
     </div>
 
     <div class="panel-inner">
-        <h2>Ошибки валидации</h2>
+        <h2>Validation errors</h2>
         <pre id="validationBox" class="code-box"></pre>
     </div>
 </section>
@@ -72,7 +72,7 @@
         const fileSelect = document.getElementById("fileModelId");
 
         const options = models.map(model =>
-            `<option value="${model.id}">${model.name} | ${model.price_per_request} кредитов</option>`
+            `<option value="${model.id}">${model.name} | ${model.price_per_request} credits</option>`
         ).join("");
 
         formSelect.innerHTML = options;
@@ -120,7 +120,7 @@
                 body: JSON.stringify(payload)
             });
 
-            showMessage("predictMessage", "Задача отправлена в очередь.", "success");
+            showMessage("predictMessage", "Task has been sent to the queue.", "success");
             document.getElementById("taskInfo").textContent =
                 `task_id=${response.task_id}, status=${response.status}, processed=${response.processed_count}, rejected=${response.rejected_count}`;
 
@@ -137,7 +137,7 @@
         const fileInput = document.getElementById("csvFile");
         const file = fileInput.files[0];
         if (!file) {
-            showMessage("predictMessage", "Выбери CSV-файл", "error");
+            showMessage("predictMessage", "Please choose a CSV file.", "error");
             return;
         }
 
@@ -154,7 +154,7 @@
             document.getElementById("validationBox").textContent =
                 JSON.stringify(response.validation_errors || [], null, 2);
 
-            showMessage("predictMessage", "Файл принят и задача отправлена в очередь.", "success");
+            showMessage("predictMessage", "File accepted and task sent to the queue.", "success");
             document.getElementById("taskInfo").textContent =
                 `task_id=${response.task_id}, status=${response.status}, processed=${response.processed_count}, rejected=${response.rejected_count}`;
 

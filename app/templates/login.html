@@ -2,26 +2,26 @@
 
 {% block content %}
 <section class="panel narrow">
-    <h1>Вход</h1>
+    <h1>Login</h1>
 
     <div id="loginMessage" class="message"></div>
 
     <form id="loginForm" class="form">
         <label>
-            Логин
+            Login
             <input type="text" id="login" name="login" required>
         </label>
 
         <label>
-            Пароль
+            Password
             <input type="password" id="password" name="password" required>
         </label>
 
-        <button type="submit" class="btn">Войти</button>
+        <button type="submit" class="btn">Sign in</button>
     </form>
 
     <p class="muted">
-        Нет аккаунта? <a href="/register">Зарегистрироваться</a>
+        No account yet? <a href="/register">Register</a>
     </p>
 </section>
 {% endblock %}
@@ -51,7 +51,7 @@
                 role: data.role
             }));
 
-            showMessage("loginMessage", "Вход выполнен успешно.", "success");
+            showMessage("loginMessage", "Login successful.", "success");
             setTimeout(() => {
                 window.location.href = "/dashboard";
             }, 500);
