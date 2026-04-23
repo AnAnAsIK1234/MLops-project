@@ -3,8 +3,7 @@ from pydantic import BaseModel, Field
 
 class PredictFormRequest(BaseModel):
     model_id: str = Field(..., min_length=1, max_length=36)
-    x1: float
-    x2: float
+    prompt: str = Field(..., min_length=1, max_length=8000)
 
 
 class ValidationErrorItem(BaseModel):

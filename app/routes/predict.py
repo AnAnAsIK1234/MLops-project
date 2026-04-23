@@ -24,7 +24,10 @@ def predict_form(
     db=Depends(get_db),
 ):
     validator = ValidationService()
-    valid_records, invalid_records = validator.validate_form(payload.x1, payload.x2)
+    valid_records, invalid_records = validator.validate_form(payload.prompt)
+
+    if not valid_records:
+        raise ValueError("Prompt is empty")
 
     service = PredictionService(db)
     task = service.create_task(
@@ -63,7 +66,7 @@ async def predict_file(
     valid_records, invalid_records = validator.validate_csv_bytes(content)
 
     if not valid_records:
-        raise ValueError("No valid records found in file")
+        raise ValueError("No valid prompts found in file")
 
     service = PredictionService(db)
     task = service.create_task(
@@ -86,9 +89,7 @@ async def predict_file(
         status=task.status,
         processed_count=len(valid_records),
         rejected_count=len(invalid_records),
-        validation_errors=[
-            ValidationErrorItem(**item) for item in invalid_records
-        ],
+        validation_errors=[ValidationErrorItem(**item) for item in invalid_records],
     )
 
 

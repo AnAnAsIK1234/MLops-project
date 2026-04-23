@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import time
 
-from database.db import Base, ENGINE, session_scope
+from database.db import session_scope
 from database.services.prediction_service import PredictionService
 from src.config import settings
 from src.processing import run_batch_prediction
@@ -36,17 +36,18 @@ def handle_message(ch, method, properties, body: bytes) -> None:
     except Exception as exc:
         print(f"[{settings.worker_id}] failed to process message: {exc}")
         if task_id:
-            with session_scope() as session:
-                service = PredictionService(session)
-                service.complete_task_failed(task_id, str(exc))
+            try:
+                with session_scope() as session:
+                    service = PredictionService(session)
+                    service.complete_task_failed(task_id, str(exc))
+            except Exception as inner_exc:
+                print(f"[{settings.worker_id}] failed to mark task as failed: {inner_exc}")
 
     finally:
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
 def main() -> None:
-    Base.metadata.create_all(bind=ENGINE)
-
     while True:
         connection = None
         try:

@@ -2,13 +2,13 @@
 
 {% block content %}
 <section class="panel">
-    <h1>ML Request</h1>
+    <h1>LLM Request</h1>
 
     <div id="predictMessage" class="message"></div>
 
     <div class="card-grid">
         <div class="card">
-            <h3>Manual input</h3>
+            <h3>Manual prompt</h3>
 
             <form id="predictForm" class="form">
                 <label>
@@ -17,16 +17,11 @@
                 </label>
 
                 <label>
-                    x1
-                    <input type="number" step="any" id="x1" required>
+                    Prompt
+                    <textarea id="prompt" rows="8" required placeholder="Write your prompt here..."></textarea>
                 </label>
 
-                <label>
-                    x2
-                    <input type="number" step="any" id="x2" required>
-                </label>
-
-                <button type="submit" class="btn">Submit form</button>
+                <button type="submit" class="btn">Send prompt</button>
             </form>
         </div>
 
@@ -43,6 +38,8 @@
                     CSV file
                     <input type="file" id="csvFile" accept=".csv" required>
                 </label>
+
+                <p class="muted">CSV format: one column named <code>prompt</code></p>
 
                 <button type="submit" class="btn">Submit file</button>
             </form>
@@ -110,8 +107,7 @@
         try {
             const payload = {
                 model_id: document.getElementById("formModelId").value,
-                x1: Number(document.getElementById("x1").value),
-                x2: Number(document.getElementById("x2").value)
+                prompt: document.getElementById("prompt").value
             };
 
             const response = await apiRequest("/predict/form", {

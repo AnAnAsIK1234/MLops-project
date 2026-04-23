@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from sqlalchemy import select
 
+from config import settings
 from database.models import MLModelORM, ModelSource
 
 
@@ -14,16 +15,10 @@ class BootstrapService:
 
         demo_models = [
             {
-                "name": "sentiment-local",
-                "source": ModelSource.LOCAL.value,
-                "local_path": "/models/sentiment.bin",
-                "price_per_request": 2,
-            },
-            {
-                "name": "summary-api",
+                "name": settings.OLLAMA_MODEL,
                 "source": ModelSource.API.value,
-                "provider": "openai",
-                "price_per_request": 5,
+                "provider": "ollama",
+                "price_per_request": 2,
             },
         ]
 
