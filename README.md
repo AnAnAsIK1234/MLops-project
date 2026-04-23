@@ -158,12 +158,3 @@ curl http://localhost/users/<user_id>/history
 
 ---
 
-## 4. Что исправлено
-
-- Gemini заменён на локальный Ollama
-- добавлен сервис `ollama` в `docker-compose.yaml`
-- добавен `ollama-init`, который автоматически скачивает модель перед стартом API и воркеров
-- RabbitMQ-пайплайн сохранён: API -> RabbitMQ -> worker -> Ollama
-- при ошибке в воркере задача помечается как `failed`, а кредиты возвращаются
-- при ошибке публикации в RabbitMQ кредиты тоже возвращаются
-- в `GET /predictions/{task_id}` добавлен `error_message`, чтобы не смотреть причину падения только в логах
