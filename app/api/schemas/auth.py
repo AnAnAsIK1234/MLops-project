@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from pydantic import BaseModel, Field
 
 
@@ -7,8 +8,14 @@ class RegisterRequest(BaseModel):
     password: str = Field(..., min_length=6, max_length=128)
 
 
-class LoginResponse(BaseModel):
-    message: str
+class LoginRequest(BaseModel):
+    login: str = Field(..., min_length=3, max_length=100)
+    password: str = Field(..., min_length=6, max_length=128)
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
     user_id: str
     login: str
     role: str

@@ -1,13 +1,13 @@
 from collections.abc import Generator
 
 from fastapi import Depends
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from api.security import decode_access_token, unauthorized_exc
 from database.db import SessionLocal
 from database.models import UserORM
-from api.security import verify_password, unauthorized_exc
 
-security = HTTPBasic()
+bearer_scheme = HTTPBearer(auto_error=False)
 
 
 def get_db() -> Generator:
@@ -23,17 +23,19 @@ def get_db() -> Generator:
 
 
 def get_current_user(
-    credentials: HTTPBasicCredentials = Depends(security),
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db=Depends(get_db),
 ) -> UserORM:
-    user = db.query(UserORM).filter(UserORM.login == credentials.username).first()
-    if user is None:
+    if credentials is None:
         raise unauthorized_exc()
 
-    if not verify_password(credentials.password, user.password_hash):
+    payload = decode_access_token(credentials.credentials)
+    user_id = payload.get("sub")
+    if not user_id:
         raise unauthorized_exc()
 
-    if not user.is_active:
+    user = db.get(UserORM, user_id)
+    if user is None or not user.is_active:
         raise unauthorized_exc()
 
     return user

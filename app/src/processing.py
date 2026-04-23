@@ -1,15 +1,27 @@
 from __future__ import annotations
 
-from src.schemas import TaskMessage
+from src.ollama_client import generate_text
 
 
-def validate_task_message(payload: dict) -> TaskMessage:
-    return TaskMessage.model_validate(payload)
+def run_batch_prediction(records: list[dict]) -> tuple[list[dict], dict]:
+    results: list[dict] = []
 
+    for row in records:
+        prompt = row["prompt"]
+        response_text = generate_text(prompt)
 
-def run_mock_prediction(task: TaskMessage) -> float:
-    x1 = task.features.x1
-    x2 = task.features.x2
+        results.append(
+            {
+                "input": {
+                    "prompt": prompt,
+                },
+                "response": response_text,
+            }
+        )
 
-    prediction = (x1 * 0.4) + (x2 * 0.6)
-    return round(prediction, 4)
+    summary = {
+        "processed_count": len(results),
+        "backend": "ollama",
+        "response_type": "text",
+    }
+    return results, summary

@@ -1,29 +1,13 @@
 from __future__ import annotations
 
-import json
-from datetime import datetime
-from time import perf_counter
-
 from sqlalchemy import select
-from sqlalchemy.orm import Session, joinedload
 
-from database.models import (
-    BalanceORM,
-    BalanceTransactionORM,
-    JobStatus,
-    MLModelORM,
-    ModelSource,
-    PredictionHistoryRecordORM,
-    PredictionResultORM,
-    PredictionTaskORM,
-    TransactionType,
-    UserORM,
-    UserRole,
-)
-from .exceptions import NotFoundError, InsufficientBalanceError
+from database.models import MLModelORM
+from .exceptions import NotFoundError
+
 
 class ModelService:
-    def __init__(self, session: Session) -> None:
+    def __init__(self, session) -> None:
         self.session = session
 
     def list_models(self) -> list[MLModelORM]:

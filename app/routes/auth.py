@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Depends
-from fastapi.security import HTTPBasicCredentials
 
-from api.dependencies import get_db, security, get_current_user
-from api.schemas.auth import RegisterRequest, LoginResponse, UserResponse
-from api.security import hash_password, verify_password, unauthorized_exc
+from api.dependencies import get_current_user, get_db
+from api.schemas.auth import LoginRequest, RegisterRequest, TokenResponse, UserResponse
+from api.security import create_access_token, hash_password, verify_password, unauthorized_exc
 from database.models import UserORM
 from database.services.user_service import UserService
 
@@ -13,10 +12,6 @@ auth_router = APIRouter(prefix="/auth", tags=["Auth"])
 @auth_router.post("/register", response_model=UserResponse, status_code=201)
 def register(payload: RegisterRequest, db=Depends(get_db)):
     service = UserService(db)
-    print("payload =", payload)
-    print("password =", payload.password)
-    print("type(password) =", type(payload.password))
-    print("len(password) =", len(payload.password))
     user = service.create_user(
         login=payload.login,
         password_hash=hash_password(payload.password),
@@ -30,19 +25,18 @@ def register(payload: RegisterRequest, db=Depends(get_db)):
     )
 
 
-@auth_router.post("/login", response_model=LoginResponse)
-def login(
-    credentials: HTTPBasicCredentials = Depends(security),
-    db=Depends(get_db),
-):
+@auth_router.post("/login", response_model=TokenResponse)
+def login(payload: LoginRequest, db=Depends(get_db)):
     service = UserService(db)
-    user = service.get_by_login(credentials.username)
+    user = service.get_by_login(payload.login)
 
-    if user is None or not verify_password(credentials.password, user.password_hash):
+    if user is None or not verify_password(payload.password, user.password_hash):
         raise unauthorized_exc()
 
-    return LoginResponse(
-        message="Login successful",
+    token = create_access_token(user_id=user.id, login=user.login, role=user.role)
+
+    return TokenResponse(
+        access_token=token,
         user_id=user.id,
         login=user.login,
         role=user.role,
