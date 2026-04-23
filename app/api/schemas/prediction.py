@@ -1,18 +1,36 @@
-from datetime import datetime
 from pydantic import BaseModel, Field
 
 
-class PredictRequest(BaseModel):
+class PredictFormRequest(BaseModel):
     model_id: str = Field(..., min_length=1, max_length=36)
-    input_data: str = Field(..., min_length=1)
+    x1: float
+    x2: float
 
 
-class PredictResponse(BaseModel):
+class ValidationErrorItem(BaseModel):
+    row_number: int
+    raw_data: dict
+    error_message: str
+
+
+class PredictAcceptedResponse(BaseModel):
     task_id: str
     status: str
-    output_ref: str | None = None
-    latency_ms: int | None = None
+    processed_count: int
+    rejected_count: int
     charged_credits: int | None = None
+    validation_errors: list[ValidationErrorItem] = []
+
+
+class PredictResultResponse(BaseModel):
+    task_id: str
+    status: str
+    charged_credits: int
+    processed_count: int
+    rejected_count: int
+    result: list[dict]
+    summary: dict
+    error_message: str | None = None
 
 
 class PredictionHistoryItem(BaseModel):
@@ -20,7 +38,7 @@ class PredictionHistoryItem(BaseModel):
     created_at: str
     status: str
     model_name: str
-    input_data: str
-    output_ref: str | None
-    latency_ms: int | None
-    price_per_request: int
+    charged_credits: int
+    processed_count: int
+    rejected_count: int
+    error_message: str | None = None

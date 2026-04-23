@@ -1,26 +1,11 @@
 from __future__ import annotations
 
-import json
-from datetime import datetime
-from time import perf_counter
-
 from sqlalchemy import select
-from sqlalchemy.orm import Session, joinedload
 
-from database.models import (
-    BalanceORM,
-    BalanceTransactionORM,
-    JobStatus,
-    MLModelORM,
-    ModelSource,
-    PredictionHistoryRecordORM,
-    PredictionResultORM,
-    PredictionTaskORM,
-    TransactionType,
-    UserORM,
-    UserRole,
-)
-from .exceptions import NotFoundError, InsufficientBalanceError
+from database.models import BalanceORM, BalanceTransactionORM, TransactionType
+from .exceptions import InsufficientBalanceError, NotFoundError
+
+
 class BalanceService:
     def __init__(self, session) -> None:
         self.session = session
@@ -48,11 +33,33 @@ class BalanceService:
 
         balance = self._get_balance(user_id)
         balance.credits += amount
+
         self.session.add(
             BalanceTransactionORM(
                 user_id=user_id,
                 amount=amount,
-                transaction_type="top_up",
+                transaction_type=TransactionType.TOP_UP.value,
+                description=description,
+            )
+        )
+        self.session.flush()
+        return balance
+
+    def debit(self, user_id: str, amount: int, description: str = "prediction charge") -> BalanceORM:
+        if amount <= 0:
+            raise ValueError("Amount must be positive")
+
+        balance = self._get_balance(user_id)
+        if balance.credits < amount:
+            raise InsufficientBalanceError("Insufficient balance")
+
+        balance.credits -= amount
+
+        self.session.add(
+            BalanceTransactionORM(
+                user_id=user_id,
+                amount=amount,
+                transaction_type=TransactionType.DEBIT.value,
                 description=description,
             )
         )

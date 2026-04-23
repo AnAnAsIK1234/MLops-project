@@ -40,8 +40,3 @@ def session_scope() -> Generator:
         raise
     finally:
         session.close()
-
-
-def get_session():
-    with Session(ENGINE) as session:
-        yield session

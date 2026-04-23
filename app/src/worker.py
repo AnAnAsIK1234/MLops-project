@@ -3,11 +3,11 @@ from __future__ import annotations
 import json
 import time
 
+from database.db import Base, ENGINE, session_scope
+from database.services.prediction_service import PredictionService
 from src.config import settings
-from src.db import Base, ENGINE, session_scope
-from src.processing import run_mock_prediction, validate_task_message
+from src.processing import run_batch_prediction
 from src.rabbitmq import create_consumer_channel
-from src.service import mark_task_failed, mark_task_processing, mark_task_success
 
 
 def handle_message(ch, method, properties, body: bytes) -> None:
@@ -16,37 +16,29 @@ def handle_message(ch, method, properties, body: bytes) -> None:
     try:
         payload = json.loads(body.decode("utf-8"))
         task_id = payload.get("task_id")
-
-        if task_id:
-            with session_scope() as session:
-                mark_task_processing(session, task_id=task_id, worker_id=settings.worker_id)
-
-        task = validate_task_message(payload)
-
-        print(f"[{settings.worker_id}] received task {task.task_id} with payload={payload}")
-
-        time.sleep(settings.worker_simulated_delay_sec)
-        prediction = run_mock_prediction(task)
+        if not task_id:
+            raise ValueError("task_id is required")
 
         with session_scope() as session:
-            mark_task_success(
-                session,
-                task_id=task.task_id,
-                prediction=prediction,
-                worker_id=settings.worker_id,
-            )
+            service = PredictionService(session)
+            task = service.start_task(task_id)
+            valid_records = json.loads(task.input_data)
 
-        print(
-            f"[{settings.worker_id}] finished task {task.task_id}, "
-            f"prediction={prediction}"
-        )
+        time.sleep(settings.worker_simulated_delay_sec)
+        result_payload, summary_payload = run_batch_prediction(valid_records)
+
+        with session_scope() as session:
+            service = PredictionService(session)
+            service.complete_task_success(task_id, result_payload, summary_payload)
+
+        print(f"[{settings.worker_id}] finished task {task_id}")
 
     except Exception as exc:
         print(f"[{settings.worker_id}] failed to process message: {exc}")
-
         if task_id:
             with session_scope() as session:
-                mark_task_failed(session, task_id=task_id, worker_id=settings.worker_id)
+                service = PredictionService(session)
+                service.complete_task_failed(task_id, str(exc))
 
     finally:
         ch.basic_ack(delivery_tag=method.delivery_tag)
@@ -64,11 +56,7 @@ def main() -> None:
                 on_message_callback=handle_message,
             )
 
-            print(
-                f"[{settings.worker_id}] waiting for messages "
-                f"from queue={settings.rabbitmq_queue}"
-            )
-
+            print(f"[{settings.worker_id}] waiting for messages from queue={settings.rabbitmq_queue}")
             channel.start_consuming()
 
         except KeyboardInterrupt:

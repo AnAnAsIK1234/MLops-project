@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="panel narrow">
+    <h1>Вход</h1>
+
+    <div id="loginMessage" class="message"></div>
+
+    <form id="loginForm" class="form">
+        <label>
+            Логин
+            <input type="text" id="login" name="login" required>
+        </label>
+
+        <label>
+            Пароль
+            <input type="password" id="password" name="password" required>
+        </label>
+
+        <button type="submit" class="btn">Войти</button>
+    </form>
+
+    <p class="muted">
+        Нет аккаунта? <a href="/register">Зарегистрироваться</a>
+    </p>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        clearMessage("loginMessage");
+
+        const login = document.getElementById("login").value.trim();
+        const password = document.getElementById("password").value;
+
+        try {
+            const data = await apiRequest("/auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ login, password })
+            });
+
+            setToken(data.access_token);
+            localStorage.setItem("current_user", JSON.stringify({
+                id: data.user_id,
+                login: data.login,
+                role: data.role
+            }));
+
+            showMessage("loginMessage", "Вход выполнен успешно.", "success");
+            setTimeout(() => {
+                window.location.href = "/dashboard";
+            }, 500);
+        } catch (error) {
+            showMessage("loginMessage", error.message, "error");
+        }
+    });
+</script>
+{% endblock %}

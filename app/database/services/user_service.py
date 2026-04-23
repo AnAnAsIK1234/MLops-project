@@ -1,26 +1,10 @@
 from __future__ import annotations
 
-import json
-from datetime import datetime
-from time import perf_counter
-
 from sqlalchemy import select
-from sqlalchemy.orm import Session, joinedload
 
-from database.models import (
-    BalanceORM,
-    BalanceTransactionORM,
-    JobStatus,
-    MLModelORM,
-    ModelSource,
-    PredictionHistoryRecordORM,
-    PredictionResultORM,
-    PredictionTaskORM,
-    TransactionType,
-    UserORM,
-    UserRole,
-)
-from .exceptions import NotFoundError, InsufficientBalanceError
+from database.models import BalanceORM, UserORM
+from .exceptions import NotFoundError
+
 
 class UserService:
     def __init__(self, session):
@@ -35,7 +19,6 @@ class UserService:
         self.session.add(user)
         self.session.flush()
 
-        from database.models import BalanceORM
         user.balance = BalanceORM(user_id=user.id, credits=0)
         self.session.flush()
         return user

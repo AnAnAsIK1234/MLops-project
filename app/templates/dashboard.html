@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="panel">
+    <h1>Личный кабинет</h1>
+
+    <div id="dashboardMessage" class="message"></div>
+
+    <div class="card-grid">
+        <div class="card">
+            <h3>Пользователь</h3>
+            <p><strong>Логин:</strong> <span id="userLogin">—</span></p>
+            <p><strong>Роль:</strong> <span id="userRole">—</span></p>
+            <p><strong>Статус:</strong> <span id="userStatus">—</span></p>
+        </div>
+
+        <div class="card">
+            <h3>Баланс</h3>
+            <p class="balance-value"><span id="userBalance">0</span> кредитов</p>
+            <a class="btn" href="/balance-page">Открыть баланс</a>
+        </div>
+    </div>
+
+    <div class="actions">
+        <a class="btn" href="/predict-page">Отправить ML-запрос</a>
+        <a class="btn btn-secondary" href="/history-page">Посмотреть историю</a>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", async () => {
+        requireAuth();
+
+        try {
+            const user = await apiRequest("/auth/me");
+            document.getElementById("userLogin").textContent = user.login;
+            document.getElementById("userRole").textContent = user.role;
+            document.getElementById("userStatus").textContent = user.is_active ? "active" : "inactive";
+
+            const balance = await apiRequest("/balance");
+            document.getElementById("userBalance").textContent = balance.credits;
+        } catch (error) {
+            showMessage("dashboardMessage", error.message, "error");
+        }
+    });
+</script>
+{% endblock %}

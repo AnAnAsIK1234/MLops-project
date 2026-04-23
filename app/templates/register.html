@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="panel narrow">
+    <h1>Регистрация</h1>
+
+    <div id="registerMessage" class="message"></div>
+
+    <form id="registerForm" class="form">
+        <label>
+            Логин
+            <input type="text" id="login" name="login" required minlength="3">
+        </label>
+
+        <label>
+            Пароль
+            <input type="password" id="password" name="password" required minlength="6">
+        </label>
+
+        <button type="submit" class="btn">Зарегистрироваться</button>
+    </form>
+
+    <p class="muted">
+        Уже есть аккаунт? <a href="/login">Войти</a>
+    </p>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById("registerForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        clearMessage("registerMessage");
+
+        const login = document.getElementById("login").value.trim();
+        const password = document.getElementById("password").value;
+
+        try {
+            await apiRequest("/auth/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ login, password })
+            });
+
+            showMessage("registerMessage", "Регистрация успешна. Теперь войди в систему.", "success");
+            setTimeout(() => {
+                window.location.href = "/login";
+            }, 1000);
+        } catch (error) {
+            showMessage("registerMessage", error.message, "error");
+        }
+    });
+</script>
+{% endblock %}

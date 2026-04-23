@@ -1,35 +1,128 @@
-from fastapi import APIRouter, Depends
+import json
+
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 
 from api.dependencies import get_current_user, get_db
-from api.schemas.prediction import PredictRequest, PredictResponse
-from database.models import UserORM
-from database.services.model_service import ModelService
+from api.schemas.prediction import (
+    PredictAcceptedResponse,
+    PredictFormRequest,
+    PredictResultResponse,
+    ValidationErrorItem,
+)
+from database.models import RequestSource, UserORM
 from database.services.prediction_service import PredictionService
+from database.services.validation_service import ValidationService
+from src.rabbitmq import publish_message
 
 predict_router = APIRouter(prefix="/predict", tags=["Predict"])
 
 
-@predict_router.post("/", response_model=PredictResponse)
-def predict(
-    payload: PredictRequest,
+@predict_router.post("/form", response_model=PredictAcceptedResponse, status_code=status.HTTP_202_ACCEPTED)
+def predict_form(
+    payload: PredictFormRequest,
     current_user: UserORM = Depends(get_current_user),
     db=Depends(get_db),
 ):
-    prediction_service = PredictionService(db)
-    model_service = ModelService(db)
+    validator = ValidationService()
+    valid_records, invalid_records = validator.validate_form(payload.x1, payload.x2)
 
-    model = model_service.get_enabled_model(payload.model_id)
-    task = prediction_service.create_task(
+    service = PredictionService(db)
+    task = service.create_task(
         user_id=current_user.id,
         model_id=payload.model_id,
-        input_data=payload.input_data,
+        valid_records=valid_records,
+        invalid_records=invalid_records,
+        request_source=RequestSource.FORM.value,
     )
-    result = prediction_service.run_task(task.id)
 
-    return PredictResponse(
+    try:
+        publish_message({"task_id": task.id})
+    except Exception as exc:
+        service.complete_task_failed(task.id, f"RabbitMQ publish error: {exc}")
+        raise HTTPException(status_code=500, detail="Failed to publish task to queue") from exc
+
+    return PredictAcceptedResponse(
         task_id=task.id,
-        status="success",
-        output_ref=result.output_ref,
-        latency_ms=result.latency_ms,
-        charged_credits=model.price_per_request,
+        status=task.status,
+        processed_count=len(valid_records),
+        rejected_count=len(invalid_records),
+        validation_errors=[],
+    )
+
+
+@predict_router.post("/file", response_model=PredictAcceptedResponse, status_code=status.HTTP_202_ACCEPTED)
+async def predict_file(
+    model_id: str = Form(...),
+    file: UploadFile = File(...),
+    current_user: UserORM = Depends(get_current_user),
+    db=Depends(get_db),
+):
+    content = await file.read()
+
+    validator = ValidationService()
+    valid_records, invalid_records = validator.validate_csv_bytes(content)
+
+    if not valid_records:
+        raise ValueError("No valid records found in file")
+
+    service = PredictionService(db)
+    task = service.create_task(
+        user_id=current_user.id,
+        model_id=model_id,
+        valid_records=valid_records,
+        invalid_records=invalid_records,
+        request_source=RequestSource.FILE.value,
+        source_filename=file.filename,
+    )
+
+    try:
+        publish_message({"task_id": task.id})
+    except Exception as exc:
+        service.complete_task_failed(task.id, f"RabbitMQ publish error: {exc}")
+        raise HTTPException(status_code=500, detail="Failed to publish task to queue") from exc
+
+    return PredictAcceptedResponse(
+        task_id=task.id,
+        status=task.status,
+        processed_count=len(valid_records),
+        rejected_count=len(invalid_records),
+        validation_errors=[
+            ValidationErrorItem(**item) for item in invalid_records
+        ],
+    )
+
+
+@predict_router.get("/{task_id}", response_model=PredictResultResponse)
+def get_prediction_result(
+    task_id: str,
+    current_user: UserORM = Depends(get_current_user),
+    db=Depends(get_db),
+):
+    service = PredictionService(db)
+    task = service.get_task(task_id)
+
+    if task.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    if task.result is None:
+        return PredictResultResponse(
+            task_id=task.id,
+            status=task.status,
+            charged_credits=task.charged_credits,
+            processed_count=task.valid_records,
+            rejected_count=task.invalid_records,
+            result=[],
+            summary={},
+            error_message=task.error_message,
+        )
+
+    return PredictResultResponse(
+        task_id=task.id,
+        status=task.status,
+        charged_credits=task.charged_credits,
+        processed_count=task.valid_records,
+        rejected_count=task.invalid_records,
+        result=json.loads(task.result.output_json),
+        summary=json.loads(task.result.summary_json),
+        error_message=task.error_message,
     )
