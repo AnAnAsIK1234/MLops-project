@@ -1,0 +1,23 @@
+from fastapi import HTTPException, status
+import bcrypt
+
+
+def hash_password(password: str) -> str:
+    password_bytes = password.encode("utf-8")
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password_bytes, salt).decode("utf-8")
+
+
+def verify_password(password: str, password_hash: str) -> bool:
+    return bcrypt.checkpw(
+        password.encode("utf-8"),
+        password_hash.encode("utf-8"),
+    )
+
+
+def unauthorized_exc() -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid credentials",
+        headers={"WWW-Authenticate": "Basic"},
+    )
