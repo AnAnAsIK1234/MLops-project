@@ -42,6 +42,7 @@ def predict_form(
         publish_message({"task_id": task.id})
     except Exception as exc:
         service.complete_task_failed(task.id, f"RabbitMQ publish error: {exc}")
+        db.commit()
         raise HTTPException(status_code=500, detail="Failed to publish task to queue") from exc
 
     return PredictAcceptedResponse(
@@ -82,8 +83,8 @@ async def predict_file(
         publish_message({"task_id": task.id})
     except Exception as exc:
         service.complete_task_failed(task.id, f"RabbitMQ publish error: {exc}")
+        db.commit()
         raise HTTPException(status_code=500, detail="Failed to publish task to queue") from exc
-
     return PredictAcceptedResponse(
         task_id=task.id,
         status=task.status,
